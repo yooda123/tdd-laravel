@@ -36,4 +36,17 @@ class User extends Authenticatable
     protected $casts = [
         'email_verified_at' => 'datetime',
     ];
+
+    public function canReserve(int $remainingCount, int $reservationCount): bool
+    {
+        if ($remainingCount === 0) {
+            return false;
+        }
+        if (strcmp($this->plan, 'gold') === 0) {
+            return true;
+        }
+
+        // $this->plan === 'regular'
+        return $reservationCount < 5;
+    }
 }
