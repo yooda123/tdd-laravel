@@ -2,7 +2,10 @@
 
 namespace App\Models;
 
+use Carbon\Carbon;
+use Exception;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
@@ -37,16 +40,44 @@ class User extends Authenticatable
         'email_verified_at' => 'datetime',
     ];
 
-    public function canReserve(int $remainingCount, int $reservationCount): bool
+    // 主 -> 従
+    public function reservations(): HasMany {
+        return $this->hasMany('App\Models\Reservation');
+    }
+
+    public function reservationCountThisMonth(): int
     {
-        if ($remainingCount === 0) {
-            return false;
+        $today = Carbon::today();
+        return $this->reservations()
+            ->whereYear('created_at', $today->year())
+            ->whereMonth('create_at', $today->month())
+            ->count();
+    }
+
+    public function canReserve(Lesson $lesson): void
+    {
+
+        if ($lesson->getVacantCount() === 0) {
+            // return false;
+            throw new Exception("レッスンの予約可能上限に達しています。");
         }
         if (strcmp($this->plan, 'gold') === 0) {
-            return true;
+            // return true;
+            return;
         }
 
         // $this->plan === 'regular'
-        return $reservationCount < 5;
+        if ($this->reservationCountThisMonth() > 5) {
+            throw new Exception("今月の予約がプランの上限に達しています。");
+        }
+    }
+
+    public function canReserve2(Lesson $lesson): bool
+    {
+        if ($lesson->isVacant()) {
+            return true;
+        }
+
+        return false;
     }
 }

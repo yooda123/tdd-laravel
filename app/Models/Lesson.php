@@ -24,4 +24,5 @@ class Lesson extends Model
         // return 0;
         return $this->capacity - $this->reservations()->count();
     }
+
 }

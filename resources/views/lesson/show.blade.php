@@ -11,5 +11,10 @@
     <div>
         <span>空き状況: {{ $lesson->vacancyLevel->mark() }}</span>
     </div>
+    @if(strcmp($lesson->vacancyLevel->mark(), "×") === 0)
+        <span class="btn btn-primary" disabled>予約できません</span>
+    @else
+        <button class="btn btn-primary">このレッスンを予約する</button>
+    @endif
 </body>
 </html>
